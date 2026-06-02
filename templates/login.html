@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logowanie — KodeksPracy AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card fade-in">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;">
+        <div class="brand-mark">KP</div>
+        <div>
+          <h1 class="brand-title" style="color:var(--text);font-size:1.35rem;">KodeksPracy AI</h1>
+          <p class="brand-sub" style="color:var(--text-muted);">MetalTech Sp. z o.o.</p>
+        </div>
+      </div>
+      <p class="page-desc" style="margin-bottom:1.5rem;">Platforma HR z asystentem prawnym i narzędziami kadrowymi.</p>
+      <form id="login-form" style="display:flex;flex-direction:column;gap:1.1rem;">
+        <div>
+          <label class="label" for="username">Login</label>
+          <input id="username" name="username" type="text" required autocomplete="username" class="input" placeholder="np. jnowak" />
+        </div>
+        <div>
+          <label class="label" for="password">Hasło</label>
+          <input id="password" name="password" type="password" required autocomplete="current-password" class="input" placeholder="••••••••" />
+        </div>
+        <p id="login-error" class="alert-error" style="display:none;"></p>
+        <button type="submit" class="btn btn-primary btn-block">Zaloguj się</button>
+      </form>
+      <div class="login-demo">
+        <p style="font-weight:600;margin-bottom:0.5rem;color:var(--text);">Konta demonstracyjne</p>
+        <p><strong>Kadry:</strong> kadry / kadry123</p>
+        <p><strong>Pracownik:</strong> jnowak / jnowak123</p>
+        <p style="color:var(--text-muted);margin-top:0.5rem;">Pozostali: login + „123”, np. akowalska123</p>
+      </div>
+    </div>
+  </div>
+  <script>
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => { if (r.ok) window.location.href = '/'; });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const err = document.getElementById('login-error');
+      err.style.display = 'none';
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value.trim(),
+          password: document.getElementById('password').value
+        })
+      });
+      if (!res.ok) {
+        let msg = 'Błąd logowania';
+        try { msg = (await res.json()).detail; } catch (_) {}
+        err.textContent = msg;
+        err.style.display = 'block';
+        return;
+      }
+      window.location.href = '/';
+    });
+  </script>
+</body>
+</html>

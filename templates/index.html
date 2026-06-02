@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KodeksPracy AI — MetalTech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/app.css" />
+  <script src="/static/js/pdf-viewer.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div style="display:flex;align-items:center;gap:0.85rem;">
+        <div class="brand-mark">KP</div>
+        <div>
+          <div class="brand-title">KodeksPracy AI</div>
+          <div class="brand-sub">MetalTech · HR Platform</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button data-section="profile" class="nav-btn nav-active">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        Mój profil
+      </button>
+      <button data-section="chat" class="nav-btn">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        Asystent HR
+      </button>
+      <button data-section="calculator" class="nav-btn">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        Kalkulator
+      </button>
+      <button data-section="documents" class="nav-btn">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Pisma PDF
+      </button>
+      <button data-section="employees" id="nav-employees" class="nav-btn hidden">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Pracownicy
+      </button>
+    </nav>
+    <div class="sidebar-user">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div style="min-width:0;flex:1;">
+          <p id="user-display" style="font-size:0.875rem;font-weight:600;color:#f1f5f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></p>
+          <p id="user-role" style="font-size:0.7rem;color:var(--sidebar-text);margin-top:2px;"></p>
+        </div>
+      </div>
+      <button id="btn-logout" type="button" class="btn-logout">Wyloguj się</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="main-inner">
+      <!-- PROFILE -->
+      <section id="section-profile" class="section fade-in">
+        <header class="page-header">
+          <h1 class="page-title" id="profile-heading">Mój profil kadrowy</h1>
+          <p class="page-desc">Urlop, nadgodziny i dane zatrudnienia — w jednym miejscu.</p>
+        </header>
+        <div id="profile-cards" class="stat-grid"></div>
+        <div id="profile-details" class="card card-padded profile-detail-card" style="display:none;"></div>
+      </section>
+
+      <!-- CHAT -->
+      <section id="section-chat" class="section hidden">
+        <header class="page-header">
+          <h1 class="page-title">Asystent HR</h1>
+          <p class="page-desc">Pytania o Kodeks pracy i Twoje dane kadrowe. Odpowiedzi oparte na RAG i profilu pracownika.</p>
+        </header>
+        <div class="grid-2 grid-chat gap-6" style="display:grid;">
+          <div class="card chat-panel">
+            <div id="chat-messages" class="chat-messages">
+              <div id="chat-empty" class="chat-empty">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
+                <p style="font-weight:600;color:var(--text-secondary);">Rozpocznij rozmowę</p>
+                <p style="font-size:0.875rem;margin-top:0.35rem;max-width:280px;">Np. „Ile mam pozostałego urlopu?” lub „Co to jest urlop na żądanie?”</p>
+              </div>
+            </div>
+            <div id="agent-badge" class="agent-pill hidden"><strong>Agent:</strong> <span id="agent-label"></span></div>
+            <div class="chat-footer">
+              <div class="chat-input-row">
+                <input id="chat-input" type="text" class="input" placeholder="Zadaj pytanie…" />
+                <button id="chat-send" type="button" class="btn btn-primary">Wyślij</button>
+              </div>
+            </div>
+          </div>
+          <div class="card card-padded">
+            <h3 style="font-size:0.9375rem;font-weight:700;margin-bottom:1rem;">Źródła prawne</h3>
+            <div id="chat-sources" style="display:flex;flex-direction:column;gap:0.75rem;">
+              <p style="font-size:0.875rem;color:var(--text-muted);font-style:italic;">Fragmenty Kodeksu pracy pojawią się po pytaniach prawnych.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CALCULATOR -->
+      <section id="section-calculator" class="section hidden">
+        <header class="page-header">
+          <h1 class="page-title">Kalkulator kadrowy</h1>
+          <p class="page-desc">Wyliczenia urlopu, wypowiedzenia i nadgodzin z podstawą prawną.</p>
+        </header>
+        <div class="grid-2 gap-6" style="display:grid;">
+          <form id="calc-form" class="card card-padded" style="display:flex;flex-direction:column;gap:1.1rem;">
+            <div id="calc-employee-wrap" class="hidden">
+              <label class="label" for="calc-employee">Pracownik</label>
+              <select id="calc-employee" class="select"></select>
+            </div>
+            <div id="calc-self-hint" class="hint-box hidden"></div>
+            <div>
+              <label class="label" for="calc-type">Typ obliczenia</label>
+              <select id="calc-type" class="select">
+                <option value="urlop_wypoczynkowy">Urlop wypoczynkowy</option>
+                <option value="wypowiedzenie_umowy">Okres wypowiedzenia</option>
+                <option value="nadgodziny">Nadgodziny</option>
+                <option value="urlop_na_zadanie">Urlop na żądanie</option>
+              </select>
+            </div>
+            <div>
+              <label class="label" for="calc-info">Dodatkowe informacje</label>
+              <textarea id="calc-info" class="textarea" rows="3" placeholder="Np. system równoważny, pół etatu…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-accent btn-block">Oblicz</button>
+          </form>
+          <div id="calc-result" class="card card-padded hidden">
+            <h3 style="font-weight:700;margin-bottom:1.25rem;">Wynik</h3>
+            <div id="calc-metric-wrap" style="margin-bottom:1.5rem;">
+              <div id="calc-metric-primary" class="result-metric primary">
+                <p id="res-metric-label" style="font-size:0.8125rem;color:var(--text-muted);font-weight:500;">Wynik</p>
+                <p id="res-metric-value" style="font-size:2.25rem;font-weight:800;color:#1d4ed8;margin-top:0.25rem;">—</p>
+                <p id="res-metric-unit" style="font-size:0.875rem;color:var(--text-muted);margin-top:0.15rem;"></p>
+              </div>
+            </div>
+            <div style="margin-bottom:1rem;">
+              <p class="label">Podstawa prawna</p>
+              <ul id="res-podstawa" style="font-size:0.875rem;color:var(--text-secondary);padding-left:1.25rem;line-height:1.7;"></ul>
+            </div>
+            <div>
+              <p class="label">Opis wyliczenia</p>
+              <p id="res-opis" style="font-size:0.875rem;line-height:1.6;padding:1rem;background:#f8fafc;border-radius:10px;border:1px solid var(--border);"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCUMENTS -->
+      <section id="section-documents" class="section hidden">
+        <header class="page-header">
+          <h1 class="page-title">Generator pism</h1>
+          <p class="page-desc">Profesjonalne pisma kadrowe z podglądem PDF.</p>
+        </header>
+        <div class="grid-2 gap-6" style="display:grid;">
+          <form id="doc-form" class="card card-padded" style="display:flex;flex-direction:column;gap:1.1rem;">
+            <div id="doc-employee-wrap" class="hidden">
+              <label class="label" for="doc-employee">Pracownik</label>
+              <select id="doc-employee" class="select"></select>
+            </div>
+            <div>
+              <label class="label" for="doc-type">Typ pisma</label>
+              <select id="doc-type" class="select"></select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div>
+                <label class="label" for="doc-name">Imię i nazwisko</label>
+                <input id="doc-name" type="text" readonly class="input" />
+              </div>
+              <div>
+                <label class="label" for="doc-position">Stanowisko</label>
+                <input id="doc-position" type="text" readonly class="input" />
+              </div>
+            </div>
+            <div>
+              <label class="label" for="doc-date">Data zdarzenia</label>
+              <input id="doc-date" type="date" class="input" />
+            </div>
+            <div>
+              <label class="label" for="doc-details">Szczegóły</label>
+              <textarea id="doc-details" class="textarea" rows="4" placeholder="Opis okoliczności…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Generuj PDF</button>
+          </form>
+          <div id="doc-preview" class="card card-padded hidden flex-col-panel" style="min-height:640px;">
+            <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+              <h3 id="doc-title" style="font-weight:700;font-size:1rem;"></h3>
+              <div style="display:flex;gap:0.5rem;">
+                <button id="doc-download" type="button" class="btn btn-primary" style="padding:0.5rem 1rem;">Pobierz</button>
+                <button id="doc-copy" type="button" class="btn btn-ghost" style="padding:0.5rem 1rem;">Kopiuj</button>
+              </div>
+            </div>
+            <div id="pdf-viewer-root" class="pdf-viewer-host" aria-label="Podgląd dokumentu PDF"></div>
+            <div style="margin-top:1rem;">
+              <p class="label" style="margin-bottom:0.25rem;">Podstawy prawne</p>
+              <p id="doc-legal" style="font-size:0.875rem;color:var(--text-secondary);"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- EMPLOYEES -->
+      <section id="section-employees" class="section hidden">
+        <header class="page-header">
+          <h1 class="page-title">Zespół MetalTech</h1>
+          <p class="page-desc">Przegląd kadrowy wszystkich pracowników — dostęp dla działu kadr.</p>
+        </header>
+        <div class="card table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Pracownik</th>
+                <th>Dział</th>
+                <th>Stanowisko</th>
+                <th class="num">Urlop</th>
+                <th class="num">Etat</th>
+              </tr>
+            </thead>
+            <tbody id="employees-tbody"></tbody>
+          </table>
+        </div>
+        <div id="employee-detail" class="card card-padded hidden" style="margin-top:1.5rem;"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  const fetchOpts = { credentials: 'include' };
+
+  async function apiFetch(url, options = {}) {
+    const res = await fetch(url, { ...fetchOpts, ...options, credentials: 'include' });
+    if (res.status === 401) {
+      window.location.href = '/login';
+      throw new Error('unauthorized');
+    }
+    return res;
+  }
+
+  let currentUser = null;
+  let currentEmployee = null;
+  let allEmployees = [];
+
+  const DOC_TYPES_EMPLOYEE = [
+    { v: 'wniosek_urlop', l: 'Wniosek o urlop' },
+    { v: 'informacja_o_urlopie', l: 'Informacja o urlopie' },
+    { v: 'potwierdzenie_nadgodzin', l: 'Potwierdzenie nadgodzin' }
+  ];
+  const DOC_TYPES_ADMIN = [
+    ...DOC_TYPES_EMPLOYEE,
+    { v: 'wypowiedzenie_umowy', l: 'Wypowiedzenie umowy' },
+    { v: 'wezwanie_do_pracy', l: 'Wezwanie do pracy' }
+  ];
+
+  function userInitials(name) {
+    return (name || '?').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  function fillDocTypes(isAdmin) {
+    const sel = document.getElementById('doc-type');
+    sel.innerHTML = '';
+    (isAdmin ? DOC_TYPES_ADMIN : DOC_TYPES_EMPLOYEE).forEach(t => {
+      const o = document.createElement('option');
+      o.value = t.v;
+      o.textContent = t.l;
+      sel.appendChild(o);
+    });
+  }
+
+  function renderProfile(emp) {
+    const cards = document.getElementById('profile-cards');
+    cards.innerHTML = `
+      <div class="stat-card stat-blue">
+        <p class="stat-label">Pozostały urlop</p>
+        <p class="stat-value">${emp.urlop_pozostaly}</p>
+        <p class="stat-meta">z ${emp.urlop_roczny_dni} dni rocznie</p>
+      </div>
+      <div class="stat-card stat-slate">
+        <p class="stat-label">Wykorzystany</p>
+        <p class="stat-value">${emp.urlop_wykorzystany}</p>
+        <p class="stat-meta">dni w tym roku</p>
+      </div>
+      <div class="stat-card stat-amber">
+        <p class="stat-label">Urlop na żądanie</p>
+        <p class="stat-value">${emp.urlop_na_zadanie_wykorzystany}<span style="font-size:1rem;font-weight:500;color:var(--text-muted)">/4</span></p>
+        <p class="stat-meta">wykorzystane w roku</p>
+      </div>
+      <div class="stat-card stat-emerald">
+        <p class="stat-label">Nadgodziny</p>
+        <p class="stat-value">${emp.nadgodziny_wykorzystane}</p>
+        <p class="stat-meta">limit ${emp.nadgodziny_limit_godz} h / rok</p>
+      </div>`;
+    const det = document.getElementById('profile-details');
+    det.style.display = 'block';
+    det.innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start;justify-content:space-between;">
+        <div>
+          <h3 style="font-size:1.125rem;font-weight:700;">${emp.imie_nazwisko}</h3>
+          <p style="color:var(--text-secondary);margin-top:0.25rem;">${emp.stanowisko} · ${emp.dzial}</p>
+        </div>
+        <span class="badge">${emp.wymiar_etatu} etatu</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <div><p class="stat-label">Staż</p><p style="font-weight:600;margin-top:0.2rem;">${emp.staz_lata} lat ${emp.staz_miesiace} mies.</p></div>
+        <div><p class="stat-label">E-mail</p><p style="font-weight:600;margin-top:0.2rem;">${emp.email}</p></div>
+        <div><p class="stat-label">Umowa</p><p style="font-weight:600;margin-top:0.2rem;">${emp.rodzaj_umowy.replace(/_/g, ' ')}</p></div>
+      </div>`;
+  }
+
+  function fillEmployeeSelects() {
+    ['calc-employee', 'doc-employee'].forEach(id => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = '';
+      allEmployees.forEach(e => {
+        const o = document.createElement('option');
+        o.value = e.id;
+        o.textContent = `${e.imie_nazwisko} · ${e.urlop_pozostaly} dni urlopu`;
+        sel.appendChild(o);
+      });
+    });
+  }
+
+  function applyDocEmployeeFields(emp) {
+    document.getElementById('doc-name').value = emp.imie_nazwisko;
+    document.getElementById('doc-position').value = emp.stanowisko;
+  }
+
+  async function loadEmployeesTable() {
+    const res = await apiFetch('/api/employees');
+    allEmployees = await res.json();
+    const tbody = document.getElementById('employees-tbody');
+    tbody.innerHTML = '';
+    allEmployees.forEach(e => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:600;">${e.imie_nazwisko}</td>
+        <td style="color:var(--text-secondary);">${e.dzial}</td>
+        <td style="color:var(--text-secondary);">${e.stanowisko}</td>
+        <td class="num"><span class="badge">${e.urlop_pozostaly} dni</span></td>
+        <td class="num" style="color:var(--text-secondary);">${e.wymiar_etatu}</td>`;
+      tr.addEventListener('click', async () => {
+        tbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+        tr.classList.add('selected');
+        const d = await apiFetch(`/api/employees/${e.id}`);
+        const emp = (await d.json()).employee;
+        const box = document.getElementById('employee-detail');
+        box.classList.remove('hidden');
+        box.innerHTML = `
+          <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:1rem;">${emp.imie_nazwisko}</h3>
+          <div class="stat-grid" style="margin-bottom:1rem;">
+            <div class="stat-card stat-blue"><p class="stat-label">Urlop pozostały</p><p class="stat-value">${emp.urlop_pozostaly}</p></div>
+            <div class="stat-card stat-slate"><p class="stat-label">Wykorzystany</p><p class="stat-value">${emp.urlop_wykorzystany}</p></div>
+            <div class="stat-card stat-emerald"><p class="stat-label">Nadgodziny</p><p class="stat-value">${emp.nadgodziny_wykorzystane}<span style="font-size:0.875rem;color:var(--text-muted)"> / ${emp.nadgodziny_limit_godz}h</span></p></div>
+          </div>
+          <p style="font-size:0.875rem;color:var(--text-secondary);">Staż ${emp.staz_lata} lat ${emp.staz_miesiace} mies. · Etat ${emp.wymiar_etatu} · ${emp.email}</p>`;
+      });
+      tbody.appendChild(tr);
+    });
+    fillEmployeeSelects();
+  }
+
+  async function initAuth() {
+    const res = await apiFetch('/api/auth/me');
+    const data = await res.json();
+    currentUser = data.user;
+    currentEmployee = data.employee;
+    const isAdmin = currentUser.role === 'admin';
+
+    document.getElementById('user-display').textContent = currentUser.display_name;
+    document.getElementById('user-role').textContent = isAdmin ? 'Administrator kadr' : 'Pracownik';
+    document.getElementById('user-avatar').textContent = userInitials(currentUser.display_name);
+
+    fillDocTypes(isAdmin);
+
+    if (isAdmin) {
+      document.getElementById('nav-employees').classList.remove('hidden');
+      document.getElementById('calc-employee-wrap').classList.remove('hidden');
+      document.getElementById('doc-employee-wrap').classList.remove('hidden');
+      document.getElementById('profile-heading').textContent = 'Panel kadr';
+      document.querySelector('#section-profile .page-desc').textContent =
+        'Zarządzanie danymi kadrowymi całej organizacji.';
+      document.getElementById('profile-cards').innerHTML =
+        '<div class="admin-banner" style="grid-column:1/-1;">Masz pełny dostęp do danych wszystkich pracowników. Przejdź do zakładki <strong>Pracownicy</strong>, aby przeglądać szczegóły, lub użyj kalkulatora i generatora pism w imieniu wybranej osoby.</div>';
+      await loadEmployeesTable();
+      if (allEmployees.length) applyDocEmployeeFields(await fetchEmployee(allEmployees[0].id));
+    } else if (currentEmployee) {
+      renderProfile(currentEmployee);
+      document.getElementById('calc-self-hint').classList.remove('hidden');
+      document.getElementById('calc-self-hint').textContent =
+        `Obliczenia na podstawie Twojego profilu: ${currentEmployee.imie_nazwisko}, staż ${currentEmployee.staz_lata} lat, etat ${currentEmployee.wymiar_etatu}.`;
+      applyDocEmployeeFields(currentEmployee);
+    }
+
+    document.getElementById('doc-employee')?.addEventListener('change', async () => {
+      applyDocEmployeeFields(await fetchEmployee(document.getElementById('doc-employee').value));
+    });
+  }
+
+  async function fetchEmployee(id) {
+    return (await (await apiFetch(`/api/employees/${id}`)).json()).employee;
+  }
+
+  async function logout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (_) {
+      /* i tak przechodzimy na login */
+    }
+    window.location.replace('/login');
+  }
+
+  document.getElementById('btn-logout').addEventListener('click', (e) => {
+    e.preventDefault();
+    logout();
+  });
+
+  initAuth().catch(() => {});
+
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const sections = document.querySelectorAll('.section');
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.section;
+      navBtns.forEach(b => b.classList.remove('nav-active'));
+      btn.classList.add('nav-active');
+      sections.forEach(s => { s.classList.add('hidden'); s.classList.remove('fade-in'); });
+      const sec = document.getElementById(`section-${target}`);
+      sec.classList.remove('hidden');
+      sec.classList.add('fade-in');
+    });
+  });
+
+  const chatMessages = document.getElementById('chat-messages');
+  const chatEmpty = document.getElementById('chat-empty');
+  const chatInput = document.getElementById('chat-input');
+  const chatSend = document.getElementById('chat-send');
+  const agentBadge = document.getElementById('agent-badge');
+  const agentLabel = document.getElementById('agent-label');
+  const chatSources = document.getElementById('chat-sources');
+
+  function appendMessage(role, text) {
+    if (chatEmpty) chatEmpty.style.display = 'none';
+    const wrap = document.createElement('div');
+    wrap.className = role === 'user' ? 'fade-in' : 'fade-in';
+    wrap.style.cssText = role === 'user'
+      ? 'display:flex;justify-content:flex-end;margin-bottom:0.75rem;'
+      : 'display:flex;justify-content:flex-start;margin-bottom:0.75rem;';
+    const bubble = document.createElement('div');
+    bubble.className = role === 'user' ? 'bubble-user' : 'bubble-assistant';
+    bubble.textContent = text;
+    wrap.appendChild(bubble);
+    chatMessages.appendChild(wrap);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return bubble;
+  }
+
+  let streamingBubble = null;
+
+  async function sendChat() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+    chatInput.value = '';
+    chatSend.disabled = true;
+    appendMessage('user', message);
+    streamingBubble = appendMessage('assistant', '');
+    agentBadge.classList.add('hidden');
+    chatSources.innerHTML = '<p style="font-size:0.875rem;color:var(--text-muted);font-style:italic;">Ładowanie…</p>';
+
+    const es = new EventSource(`/api/stream-chat?message=${encodeURIComponent(message)}`);
+
+    es.addEventListener('meta', (e) => {
+      const data = JSON.parse(e.data);
+      agentBadge.classList.remove('hidden');
+      agentLabel.textContent = `${data.agent_label} · ${Math.round(data.confidence * 100)}%`;
+      if (data.agent !== 'legal_rag') {
+        chatSources.innerHTML = '<p style="font-size:0.875rem;color:var(--text-muted);font-style:italic;">Źródła KP tylko przy pytaniach prawnych.</p>';
+      }
+    });
+
+    es.addEventListener('token', (e) => {
+      streamingBubble.textContent += JSON.parse(e.data).text;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+
+    es.addEventListener('judge', (e) => {
+      const data = JSON.parse(e.data);
+      if (data.status === 'checking') {
+        chatSources.innerHTML = '<p style="font-size:0.875rem;color:var(--text-muted);font-style:italic;">Weryfikacja zgodności odpowiedzi ze źródłami…</p>';
+      } else if (data.status === 'done' && data.revisions > 0) {
+        const extra = ` · poprawiono po weryfikacji (${data.revisions})`;
+        if (!agentLabel.textContent.includes('poprawiono')) {
+          agentLabel.textContent += extra;
+        }
+      }
+    });
+
+    es.addEventListener('sources', (e) => {
+      const data = JSON.parse(e.data);
+      chatSources.innerHTML = '';
+      if (!data.sources?.length) {
+        chatSources.innerHTML = '<p style="font-size:0.875rem;color:var(--text-muted);font-style:italic;">Brak dopasowanych fragmentów.</p>';
+        return;
+      }
+      data.sources.forEach(src => {
+        const card = document.createElement('div');
+        card.className = 'source-card';
+        card.innerHTML = `
+          <p class="source-title">${src.article}</p>
+          <p class="source-meta">${src.source} · ${src.topic} · ${(src.relevance * 100).toFixed(0)}%</p>
+          <p style="margin-top:0.5rem;line-height:1.5;color:var(--text-secondary);">${src.excerpt}</p>
+          ${src.url ? `<a href="${src.url}" target="_blank" rel="noopener" style="display:inline-block;margin-top:0.5rem;font-size:0.75rem;font-weight:600;color:#1d4ed8;">Otwórz źródło →</a>` : ''}`;
+        chatSources.appendChild(card);
+      });
+    });
+
+    es.addEventListener('done', () => { es.close(); chatSend.disabled = false; });
+    es.addEventListener('error', (e) => {
+      let detail = 'Błąd połączenia.';
+      try { detail = JSON.parse(e.data).detail; } catch (_) {}
+      if (streamingBubble) streamingBubble.textContent += `\n\n⚠ ${detail}`;
+      es.close();
+      chatSend.disabled = false;
+    });
+    es.onerror = () => { if (chatSend.disabled) { es.close(); chatSend.disabled = false; } };
+  }
+
+  chatSend.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+
+  document.getElementById('calc-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      typ_obliczenia: document.getElementById('calc-type').value,
+      dodatkowe_info: document.getElementById('calc-info').value || null
+    };
+    if (currentUser?.role === 'admin') payload.employee_id = document.getElementById('calc-employee').value;
+    const res = await apiFetch('/api/calculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      let msg = await res.text();
+      try {
+        const err = JSON.parse(msg);
+        if (Array.isArray(err.detail)) msg = err.detail.map(d => d.msg || d).join(', ');
+        else if (err.detail) msg = typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail);
+      } catch (_) {}
+      alert('Błąd: ' + msg);
+      return;
+    }
+    const data = await res.json();
+    const calcType = document.getElementById('calc-type').value;
+    const result = document.getElementById('calc-result');
+    result.classList.remove('hidden');
+    result.classList.add('fade-in');
+    const metricLabels = {
+      urlop_wypoczynkowy: 'Urlop wypoczynkowy (dni)',
+      wypowiedzenie_umowy: 'Okres wypowiedzenia (mies.)',
+      nadgodziny: 'Nadgodziny w roku (godz.)',
+      urlop_na_zadanie: 'Pozostało urlopu na żądanie (dni)'
+    };
+    const metricUnits = { nadgodziny: 'godz.' };
+    const label = data.wynik_etykieta || metricLabels[calcType] || 'Wynik';
+    const unit = data.wynik_jednostka || metricUnits[calcType] || '';
+    let value = data.wynik_glowny;
+    if (value == null) {
+      if (calcType === 'wypowiedzenie_umowy') value = data.wypowiedzenie_miesiace;
+      else if (calcType === 'nadgodziny') value = null;
+      else value = data.urlop_dni;
+    }
+    const primary = document.getElementById('calc-metric-primary');
+    primary.className = 'result-metric ' + (calcType === 'wypowiedzenie_umowy' ? 'accent' : 'primary');
+    document.getElementById('res-metric-label').textContent = label;
+    const num = value == null ? null : (Number.isInteger(value) ? value : Number(value));
+    const display = num == null ? '—' : (unit ? `${num} ${unit}` : String(num));
+    document.getElementById('res-metric-value').textContent = display;
+    document.getElementById('res-metric-unit').textContent = '';
+    const podstawa = document.getElementById('res-podstawa');
+    podstawa.innerHTML = '';
+    (data.podstawa_prawna || []).forEach(p => {
+      const li = document.createElement('li');
+      li.textContent = p;
+      podstawa.appendChild(li);
+    });
+    document.getElementById('res-opis').textContent = data.wyliczenie_opis;
+  });
+
+  let lastDocText = '', lastPdfUrl = null, pdfViewer = null;
+
+  function base64ToBlob(b64, mime) {
+    const bytes = atob(b64);
+    const arr = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  }
+
+  function getPdfViewer() {
+    if (!pdfViewer) {
+      const root = document.getElementById('pdf-viewer-root');
+      pdfViewer = new PdfViewer(root);
+    }
+    return pdfViewer;
+  }
+
+  document.getElementById('doc-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const preview = document.getElementById('doc-preview');
+    preview.classList.remove('hidden');
+    document.getElementById('doc-title').textContent = 'Generowanie PDF…';
+
+    const payload = {
+      typ_pisma: document.getElementById('doc-type').value,
+      imie_nazwisko: document.getElementById('doc-name').value,
+      stanowisko: document.getElementById('doc-position').value,
+      data_zdarzenia: document.getElementById('doc-date').value,
+      szczegoly: document.getElementById('doc-details').value
+    };
+    if (currentUser?.role === 'admin') payload.employee_id = document.getElementById('doc-employee').value;
+
+    const res = await apiFetch('/api/document', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) { alert('Błąd: ' + (await res.text())); return; }
+    const data = await res.json();
+    document.getElementById('doc-title').textContent = data.tytul;
+    lastDocText = `${data.tytul}\n\n${data.adresat}\n\n${data.tresc}\n\n${data.podpis}`;
+    document.getElementById('doc-legal').textContent = (data.podstawy_prawne || []).join(' · ');
+    if (lastPdfUrl) URL.revokeObjectURL(lastPdfUrl);
+    lastPdfUrl = URL.createObjectURL(base64ToBlob(data.pdf_base64, 'application/pdf'));
+    try {
+      await getPdfViewer().loadFromBase64(data.pdf_base64);
+    } catch (_) {
+      /* błąd wyświetlony w viewerze */
+    }
+  });
+
+  document.getElementById('doc-download').addEventListener('click', () => {
+    if (!lastPdfUrl) return;
+    const a = document.createElement('a');
+    a.href = lastPdfUrl;
+    a.download = (document.getElementById('doc-title').textContent || 'pismo') + '.pdf';
+    a.click();
+  });
+
+  document.getElementById('doc-copy').addEventListener('click', async () => {
+    if (!lastDocText) return;
+    await navigator.clipboard.writeText(lastDocText);
+    const btn = document.getElementById('doc-copy');
+    btn.textContent = 'Skopiowano';
+    setTimeout(() => { btn.textContent = 'Kopiuj'; }, 2000);
+  });
+</script>
+</body>
+</html>
