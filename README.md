@@ -6,7 +6,7 @@ Asystent HR i prawny dla **MetalTech Sp. z o.o.** — aplikacja webowa oparta o 
 
 | Moduł | Opis |
 |--------|------|
-| **Asystent HR (czat)** | Odpowiedzi w stylu eksperta HR z hybrydowym wyszukiwaniem (Qdrant + BM25 + RRF), rerankingiem i modułem weryfikacji źródeł |
+| **Asystent HR (czat)** | MainSupervisor kieruje pytanie do **LegalRAG** (hybryda Qdrant + BM25 + RRF, reranking). Opcjonalnie **Source Judge** (`agents/answer_judge.py`) ocenia odpowiedź względem fragmentów i żąda poprawki — nie jest to osobny „główny” agent, tylko pętla w RAG |
 | **Kalkulator kadrowy** | Urlop, wypowiedzenie, nadgodziny, urlop na żądanie — na podstawie profilu lub parametrów z pytania |
 | **Generator pism** | Wnioski i dokumenty HR z eksportem do PDF |
 | **Profil pracownika** | Dane urlopowe, staż, nadgodziny — z PostgreSQL |
@@ -31,7 +31,19 @@ Asystent HR i prawny dla **MetalTech Sp. z o.o.** — aplikacja webowa oparta o 
               └─────────────────────────────┘
 ```
 
-**Agenci (pydantic-ai):** MainSupervisor (routing) → LegalRAG / Calculator / DocumentGenerator.
+**Agenci (pydantic-ai):**
+
+1. **MainSupervisor** — tylko klasyfikacja intencji (legal_rag / calculator / document / general), bez własnej odpowiedzi merytorycznej.
+2. **LegalRAG** — generuje odpowiedź z bazy; przy `RAG_JUDGE_ENABLED=true` uruchamia **sędziego źródeł** (reguły + LLM), do jednej poprawki.
+3. **CalculatorAgent** / **DocumentGenerator** — obliczenia kadrowe i pisma PDF.
+
+W czacie (SSE) zdarzenie `judge` informuje UI o wyniku weryfikacji.
+
+## Dokumentacja
+
+| Materiał | Opis |
+|----------|------|
+| [KodeksPracy_AI_Orchestration.pdf](docs/KodeksPracy_AI_Orchestration.pdf) | Prezentacja: architektura, orkiestracja agentów, RAG i kryteria wyróżnienia projektu GenAI |
 
 ## Wymagania
 
@@ -146,7 +158,9 @@ Hasła nie są przechowywane jawnym tekstem.
 | `DATABASE_URL` | PostgreSQL |
 | `AUTH_SECRET` | Hash haseł + podpis sesji |
 | `RAG_HYBRID_ENABLED` | BM25 + dense (domyślnie `true`) |
-| `RAG_JUDGE_ENABLED` | Weryfikator odpowiedzi RAG (domyślnie `true`) |
+| `RAG_JUDGE_ENABLED` | Pętla sędziego w LegalRAG (domyślnie `true`) |
+| `RAG_JUDGE_MAX_REVISIONS` | Liczba poprawek po odrzuceniu przez sędziego (domyślnie `1`) |
+| `RAG_JUDGE_MIN_SCORE` | Próg akceptacji grounding_score (domyślnie `0.75`) |
 | `RAG_CHUNK_MAX_LEN` / `RAG_CHUNK_OVERLAP` | Parametry chunkowania (domyślnie 1500 / 250) |
 
 Pełny szablon: `.env.example`.
